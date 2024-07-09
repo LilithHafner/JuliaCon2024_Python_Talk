@@ -31,6 +31,17 @@
 			<div class="slides">
 				<section data-markdown>
 					<textarea data-template>
+# Python.jl
+
+- Seamlessly blend Python & Julia
+- Hint: you want a seam
+
+---
+
+# Demo
+
+---
+
 # Adventures in IR: Plundering Core.Compiler
 
 Dr Frames White (she/her)
@@ -43,8 +54,8 @@ JuliaHub
 <img src="assets/map.png" alt="map of flight Perth to Amsterdam stopping in Singapore." style="height:500px;">
 
 note:
-Only 24 hours in transit, not 48 hours.  
-Only 1/3rd the way round the would, not half.  
+Only 24 hours in transit, not 48 hours.
+Only 1/3rd the way round the would, not half.
 Much less remote than Boston.
 There were even multiple routes that didn't transfer in countries where I am illegal
 
@@ -64,7 +75,7 @@ Used in DAECompiler.jl, (parts of) Diffractor.jl, Tapir.jl
 
 ## 💡 Why would I want to do this?
 
-- Run different optimization pipeline 
+- Run different optimization pipeline
 	- e.g. Allow union splitting with more than 4 elements in the union
 - Generate multiple functions from 1 definition
 	- DAECompile generates about a dozen different functions like Jacobians and callbacks from a single function definition.
@@ -115,7 +126,7 @@ You are likely familiar with the compilation pipeline of:
 1. Source code
 2. Parsing -> AST
 3. Lowering -> Untyped IR
-4. Type Inference -> Typed IR 
+4. Type Inference -> Typed IR
 5. Code Generation -> LLVM IR
 6. Assembling -> Machine Code
 
@@ -152,14 +163,14 @@ julia> function qux()
 		end;
 
 julia> Base.code_ircode(qux) |> first
-3 1 ─ %1 = invoke Main.rand(Main.Bool::Type{Bool})::Bool            │ 
-	└──      goto #3 if not %1                                        │ 
-4 2 ─ %3 = invoke Main.rand()::Float64                              │ 
+3 1 ─ %1 = invoke Main.rand(Main.Bool::Type{Bool})::Bool            │
+	└──      goto #3 if not %1                                        │
+4 2 ─ %3 = invoke Main.rand()::Float64                              │
 	│   %4 = Base.mul_float(10.0, %3)::Float64                        │╻ *
 	└── %5 = Base.add_float(0.0, %4)::Float64                         │╻ +
-6 3 ┄ %6 = φ (#2 => %5, #1 => 0.0)::Float64                         │ 
-	└──      return %6                                                │ 
-	=> Float64 
+6 3 ┄ %6 = φ (#2 => %5, #1 => 0.0)::Float64                         │
+	└──      return %6                                                │
+	=> Float64
 ```
 
 
@@ -215,10 +226,10 @@ julia> foo() = 2 * (@noinline rand())
 foo (generic function with 1 method)
 
 julia> Base.code_ircode(foo, Tuple{})
-1 1 ─ %1 = invoke Main.rand()::Float64                │ 
+1 1 ─ %1 = invoke Main.rand()::Float64                │
 	│   %2 = Base.mul_float(2.0, %1)::Float64           │╻ *
-	└──      return %2                                  │ 
-	=> Float64                                           
+	└──      return %2                                  │
+	=> Float64
 ```
 
 ---
@@ -233,7 +244,7 @@ Functionally they are much like `SSAValue`s but without instructions associated 
 julia> Base.code_ircode(+, (Int, Int),) |> only
 87 1 ─ %1 = Base.add_int(_2, _3)::Int64                  │
 	└──      return %1                                    │
-	=> Int64           
+	=> Int64
 ```
 ---
 
@@ -248,7 +259,7 @@ julia> @eval foo() = $([1, 2]);
 
 julia> Base.code_ircode(foo) |> first
  1 ─     return [1, 2]                                                                                                                           │
-  => Vector{Int64}                                                                                                                                
+  => Vector{Int64}
 ```
 
 This can be weird if it is mutated.
@@ -265,27 +276,27 @@ julia> bar() = [1, 2];
 julia> Base.code_ircode(bar) |> first
 1 1 ─ %1  = $(Expr(:foreigncall, :(:jl_alloc_genericmemory), Ref{Memory{Int64}}, svec(Any, Int64), 0, :(:ccall), Memory{Int64}, 2, 2))::Memory{Int64}
   │   %2  = Core.memoryref(%1)::MemoryRef{Int64}                                                                             ││╻   Array
-  └── %3  = %new(Vector{Int64}, %2, (2,))::Vector{Int64}                                                                     │││ 
+  └── %3  = %new(Vector{Int64}, %2, (2,))::Vector{Int64}                                                                     │││
   2 ┄ %4  = φ (#1 => 1, #6 => %15)::Int64                                                                                    │╻   vect
-  │   %5  = φ (#1 => 1, #6 => %16)::Int64                                                                                    ││  
+  │   %5  = φ (#1 => 1, #6 => %16)::Int64                                                                                    ││
   │   %6  = Base.getfield((1, 2), %4, false)::Int64                                                                          ││╻   __safe_getindex
   │   %7  = Base.getfield(%3, :ref)::MemoryRef{Int64}                                                                        │││╻   getproperty
-  │   %8  = Base.memoryref(%7, %4, false)::MemoryRef{Int64}                                                                  │││ 
-  │         Base.memoryrefset!(%8, %6, :not_atomic, false)::Int64                                                            │││ 
+  │   %8  = Base.memoryref(%7, %4, false)::MemoryRef{Int64}                                                                  │││
+  │         Base.memoryrefset!(%8, %6, :not_atomic, false)::Int64                                                            │││
   │   %10 = (%5 === 2)::Bool                                                                                                 ││╻╷  iterate
-  └──       goto #4 if not %10                                                                                               │││ 
-  3 ─       goto #5                                                                                                          │││ 
+  └──       goto #4 if not %10                                                                                               │││
+  3 ─       goto #5                                                                                                          │││
   4 ─ %13 = Base.add_int(%5, 1)::Int64                                                                                       │││╻   +
   └──       goto #5                                                                                                          ││││
-  5 ┄ %15 = φ (#4 => %13)::Int64                                                                                             ││  
-  │   %16 = φ (#4 => %13)::Int64                                                                                             ││  
-  │   %17 = φ (#3 => true, #4 => false)::Bool                                                                                ││  
-  │   %18 = Base.not_int(%17)::Bool                                                                                          ││  
-  └──       goto #7 if not %18                                                                                               ││  
-  6 ─       goto #2                                                                                                          ││  
-  7 ─       goto #8                                                                                                          ││  
-  8 ─       return %3                                                                                                        ││  
-   => Vector{Int64}                                                                                                              
+  5 ┄ %15 = φ (#4 => %13)::Int64                                                                                             ││
+  │   %16 = φ (#4 => %13)::Int64                                                                                             ││
+  │   %17 = φ (#3 => true, #4 => false)::Bool                                                                                ││
+  │   %18 = Base.not_int(%17)::Bool                                                                                          ││
+  └──       goto #7 if not %18                                                                                               ││
+  6 ─       goto #2                                                                                                          ││
+  7 ─       goto #8                                                                                                          ││
+  8 ─       return %3                                                                                                        ││
+   => Vector{Int64}
 ```
 
 note:
@@ -326,14 +337,14 @@ julia> function qux()
 		end;
 
 julia> Base.code_ircode(qux) |> first
-3 1 ─ %1 = invoke Main.rand(Main.Bool::Type{Bool})::Bool            │ 
-	└──      goto #3 if not %1                                        │ 
-4 2 ─ %3 = invoke Main.rand()::Float64                              │ 
+3 1 ─ %1 = invoke Main.rand(Main.Bool::Type{Bool})::Bool            │
+	└──      goto #3 if not %1                                        │
+4 2 ─ %3 = invoke Main.rand()::Float64                              │
 	│   %4 = Base.mul_float(10.0, %3)::Float64                        │╻ *
 	└── %5 = Base.add_float(0.0, %4)::Float64                         │╻ +
-6 3 ┄ %6 = φ (#2 => %5, #1 => 0.0)::Float64                         │ 
-	└──      return %6                                                │ 
-	=> Float64 
+6 3 ┄ %6 = φ (#2 => %5, #1 => 0.0)::Float64                         │
+	└──      return %6                                                │
+	=> Float64
 ```
 
 ---
@@ -452,20 +463,20 @@ you can instead define a little local function in your transform code then inser
 ## 🗜️ additions are only pending til you `compact!`
 
 <pre><font color="#4E9A06"><b>julia&gt; </b></font>foo() = 10;
-	
+
 	<font color="#4E9A06"><b>julia&gt; </b></font>ir, _ = Base.code_ircode(foo) |&gt; first
 	<font color="#88807C"> </font>1 ─     return 10                                                                                                                               <font color="#88807C">│</font>
 	<font color="#88807C"> </font> =&gt; Int64                                                                                                                                       <font color="#88807C"> </font>
-	
-	<font color="#4E9A06"><b>julia&gt; </b></font>CC.insert_node!(ir, CC.SSAValue(1), 
+
+	<font color="#4E9A06"><b>julia&gt; </b></font>CC.insert_node!(ir, CC.SSAValue(1),
 		   CC.NewInstruction(Expr(:call, println, &quot;hi&quot;), Any))
 	:(%2)
-	
+
 	<font color="#4E9A06"><b>julia&gt; </b></font>ir
 	<font color="#88807C"> </font>1 ─ <font color="#4E9A06">    (println)(&quot;hi&quot;)</font><font color="#88807C">::Any</font>                                                                                                                    <font color="#88807C">│</font>
 	<font color="#88807C"> </font>└──     return 10                                                                                                                               <font color="#88807C"> </font>
 	<font color="#88807C"> </font>                                                                                                                                                <font color="#88807C"> </font>
-	
+
 	<font color="#4E9A06"><b>julia&gt; </b></font>ir = CC.compact!(ir)
 	<font color="#88807C"> </font>1 ─     (println)(&quot;hi&quot;)<font color="#88807C">::Any</font>                                                                                                                    <font color="#88807C">│</font>
 	<font color="#88807C"> </font>└──     return 10                                                                                                                               <font color="#88807C">│</font>
@@ -474,9 +485,9 @@ you can instead define a little local function in your transform code then inser
 ---
 
 ## 🗜️ IncrementalCompact
-`CC.IncrementalCompact` is more powerful tool for writing IR passes.  
-It can consume IR with pending additions and as you iterate it it compacts.  
-However, its also a bit more fiddly and we do not have time too cover it.  
+`CC.IncrementalCompact` is more powerful tool for writing IR passes.
+It can consume IR with pending additions and as you iterate it it compacts.
+However, its also a bit more fiddly and we do not have time too cover it.
 
 ---
 
@@ -524,7 +535,7 @@ for ii in 1:length(ir.stmts)
 	stmt = inst[:stmt]
 	if (Meta.isexpr(stmt, :invoke, 2)
 		&& CC.singleton_type(CC.argextype(stmt.args[2])) == compile_datetime)
-		
+
 		inst[:stmt] = Dates.now()
 		inst[:type] = DateTime
 	end
@@ -534,15 +545,15 @@ end
 note:
 You write a pass that checks for it and does something.
 Here we are just replacing it with a value computed at compile time.
-But we could do much more. 
+But we could do much more.
 ---
 
 
 
 
 ## 🏃‍♀️ How do I run the full compiler pipeline manually?
- 
-1. Get + transform or create IR 
+
+1. Get + transform or create IR
 2. Run inference (optional)
 3. run optimization (optional)
 4. Give to `OpaqueClosure` to compile into executable code
@@ -560,10 +571,10 @@ Especially without inference.
 "run type inference and constant propagation on the ir"
 function infer_ir!(
 	ir::CC.IRCode,
-	interp::CC.AbstractInterpreter, 
+	interp::CC.AbstractInterpreter,
 	mi::CC.MethodInstance
 )
-    
+
 	method_info = CC.MethodInfo(#=propagate_inbounds=#true, nothing)
     min_world = world = CC.get_world_counter(interp)
     max_world = Base.get_world_counter()
@@ -590,7 +601,7 @@ CC.NativeInterpreter(;
 <div class="r-stack">
 <div class="fragment current-visible">
 
-`InferenceParameters(; kwargs...)` 
+`InferenceParameters(; kwargs...)`
 - `max_methods = 3`
 - `max_union_splitting = 4`
 - `max_apply_union_enum = 8`
@@ -625,7 +636,7 @@ function get_toplevel_mi_from_ir(ir::CC.IRCode, _module::Module)
     mi.specTypes = Tuple{map(CC.widenconst, ir.argtypes)...}
     mi.def = _module
     return mi
-end 
+end
 ```
 
 notes:
@@ -656,7 +667,7 @@ function compile(ir, intepr::CC.AbstractInterpreter, _module=@__MODULE__)
 	Core.Compiler.verify_ir(ir)
 
 	# Bundle this up into something that can be executed
-	return Core.OpaqueClosure(ir; do_compile=true)  
+	return Core.OpaqueClosure(ir; do_compile=true)
 end
 ```
 
@@ -673,15 +684,15 @@ Eyeball it
 
 <pre><font color="#4E9A06"><b>julia&gt; </b></font>foo() = 10
 	foo (generic function with 3 methods)
-	
+
 	<font color="#4E9A06"><b>julia&gt; </b></font>ir, _ = Base.code_ircode(foo) |&gt; first
 	<font color="#88807C"> </font>1 ─     return 10                                                                                                                               <font color="#88807C">│</font>
 	<font color="#88807C"> </font> =&gt; Int64                                                                                                                                       <font color="#88807C"> </font>
-	
-	<font color="#4E9A06"><b>julia&gt; </b></font>CC.insert_node!(ir, CC.SSAValue(1), 
+
+	<font color="#4E9A06"><b>julia&gt; </b></font>CC.insert_node!(ir, CC.SSAValue(1),
 		CC.NewInstruction(CC.SSAValue(3), Any))
 	:(%2)
-	
+
 	<font color="#4E9A06"><b>julia&gt; </b></font>ir
 	<font color="#88807C"> </font>1 ─ <font color="#4E9A06">     </font><font color="#CC0000">%3</font><font color="#88807C">::Any</font>                                                                                                                                <font color="#88807C">│</font>
 	<font color="#88807C"> </font>└──      return 10                                                                                                                              <font color="#88807C"> </font>
@@ -692,7 +703,7 @@ Eyeball it
 
 ## 🕵️‍♀️ Debugging code segfaulting
 
-Ask `verify_ir(ir)` which asserts all the subtle assumptions the compiler makes.  
+Ask `verify_ir(ir)` which asserts all the subtle assumptions the compiler makes.
 A good idea to call this in all your compilation pipelines.
 
 Check in particular you are not modifying the `ir` directly, while also working with it via `IncrementalCompact`.
@@ -724,39 +735,39 @@ I would really like someone to run a talk on running julia in GDB
 
 ## Pi nodes
  These are like type-assertions.
- 
+
  ```julia=-repl
  julia> int32_or_float32() = rand((rand() > 0.5 ? Int32 : Float32));
- 
+
  julia> function bar()
 		 a = @noinline int32_or_float32()
 		 return a + a
 		 end;
- 
+
  julia> Base.code_ircode(bar) |> only
  2 1 ─ %1  = invoke Main.int32_or_float32()::Union{Float32, Int32}
- 3 │   %2  = (isa)(%1, Float32)::Bool                     │     
-	 │   %3  = (isa)(%1, Float32)::Bool                     │     
-	 │   %4  = (Core.Intrinsics.and_int)(%2, %3)::Bool      │     
-	 └──       goto #3 if not %4                            │     
-	 2 ─ %6  = π (%1, Float32)                              │     
-	 │   %7  = π (%1, Float32)                              │     
+ 3 │   %2  = (isa)(%1, Float32)::Bool                     │
+	 │   %3  = (isa)(%1, Float32)::Bool                     │
+	 │   %4  = (Core.Intrinsics.and_int)(%2, %3)::Bool      │
+	 └──       goto #3 if not %4                            │
+	 2 ─ %6  = π (%1, Float32)                              │
+	 │   %7  = π (%1, Float32)                              │
 	 │   %8  = Base.add_float(%6, %7)::Float32              │╻     +
-	 └──       goto #9                                      │     
-	 3 ─ ...     
-	 8 ─ %29 = π (%1, Int32)                                │     
-	 │   %30 = π (%1, Int32)                                │     
+	 └──       goto #9                                      │
+	 3 ─ ...
+	 8 ─ %29 = π (%1, Int32)                                │
+	 │   %30 = π (%1, Int32)                                │
 	 │   %31 = Base.add_int(%29, %30)::Int32                │╻     +
-	 └──       goto #9                                      │     
+	 └──       goto #9                                      │
 	 9 ┄ %33 = φ (#2 => %8, #4 => %17, #6 => %26, #8 => %31)::Union{Float32, Int32}
-	 └──       return %33                                   │     
-	 => Union{Float32, Int32}                                    
+	 └──       return %33                                   │
+	 => Union{Float32, Int32}
  ```
  note:
  They are facts that are certain to be true, so the compiler can use them.
  They are often inserted by type assertions or branching on types, etc.
  For example they are inserted during union-splitting
- 
+
 
 
 					</textarea>
