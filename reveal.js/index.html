@@ -40,6 +40,83 @@
 
 # Demo
 
+<!--
+
+julia> import Pkg; Pkg.add(url="https://github.com/LilithHafner/Jokes", subdir="Python"); using Python
+
+julia> for i in range(7):
+           println(i)
+
+julia> class RandNear:
+	def __init__(self, x):
+		self.x = x
+
+	def gen(self, T):
+		return self.x + rand(T)
+
+julia> rn = RandNear(1000)
+
+julia> rn.gen(Float64)
+1000.2156545877635
+
+julia> rn.gen(Int8)
+932
+
+julia> my_range = range(100);
+
+julia> @time sum(my_range)
+  0.006405 seconds (2.37 k allocations: 146.750 KiB, 99.26% compilation time)
+4950
+
+julia> my_range = range(1000000000);
+
+julia> @time sum(my_range)
+  0.000004 seconds (1 allocation: 16 bytes)
+499999999500000000
+
+julia> from tkinter import *
+
+julia> window = Tk()
+
+julia> window.title("Python.jl!")
+""
+
+julia> window.mainloop()
+
+julia> using Plots
+-->
+
+---
+
+# Role of Python.jl
+
+- New frontend for PythonCall.jl
+
+
+<div class="r-stack">
+	<div class="fragment current-visible">
+
+	`InferenceParameters(; kwargs...)`
+	- `max_methods = 3`
+	- `max_union_splitting = 4`
+	- `max_apply_union_enum = 8`
+	- `max_tuple_splat = 32`
+	- `tuple_complexity_limit_depth = 3`
+	- others, see docstring
+	</div>
+
+	<div class="fragment">
+
+	`OptimizationParameters(; kwargs...)`
+	- `inlining::Bool = inlining_enabled()`
+	- `inline_cost_threshold = 100`
+	- `max_tuple_splat = 32`
+	- `compilesig_invokes = true`
+	- `assume_fatal_throw = false`
+	- others, see docstring
+	</div>
+</div>
+
 ---
 
 # Adventures in IR: Plundering Core.Compiler
