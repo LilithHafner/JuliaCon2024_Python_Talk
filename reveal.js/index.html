@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Adventures in IR</title>
+		<title>Python.jl</title>
 
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
@@ -33,7 +33,17 @@
 					<textarea data-template>
 # Python.jl
 
+Lilith Hafner (She/Her)
+
+Independent Researcher
+
+---
+
+# Python.jl
+
 - Seamlessly blend Python & Julia
+
+
 - Hint: you want a seam
 
 ---
@@ -91,31 +101,31 @@ julia> using Plots
 # Role of Python.jl
 
 - New frontend for PythonCall.jl
+- Leaning all the way into automagical
 
 
-<div class="r-stack">
 	<div class="fragment current-visible">
 
-	`InferenceParameters(; kwargs...)`
-	- `max_methods = 3`
-	- `max_union_splitting = 4`
-	- `max_apply_union_enum = 8`
-	- `max_tuple_splat = 32`
-	- `tuple_complexity_limit_depth = 3`
-	- others, see docstring
+	## Great for
+
+	- Demos
+	- Sales pitches
+
 	</div>
 
 	<div class="fragment">
 
-	`OptimizationParameters(; kwargs...)`
-	- `inlining::Bool = inlining_enabled()`
-	- `inline_cost_threshold = 100`
-	- `max_tuple_splat = 32`
-	- `compilesig_invokes = true`
-	- `assume_fatal_throw = false`
-	- others, see docstring
+	## Okay for
+
+	- Scripts
+
 	</div>
-</div>
+
+	## Needs work for
+
+	- Shared use
+	- Packages
+	- Compitability with ecosysten
 
 ---
 
