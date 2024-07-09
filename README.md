@@ -1,2 +1,2 @@
 View the slide at:
-https://raw.githack.com/oxinabox/JuliaCon2024_IR_talk/main/reveal.js/index.html
+https://raw.githack.com/LilithHafner/JuliaCon2024_Python_Talk/main/reveal.js/index.html
