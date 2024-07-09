@@ -93,7 +93,7 @@ julia> window.title("Python.jl!")
 
 julia> window.mainloop()
 
-julia> using Plots
+julia> using Plots # <-- Don't forget!!!
 -->
 
 ```julia
@@ -109,6 +109,8 @@ using Python
 
 - New frontend for PythonCall.jl
 - Leaning all the way into automagical
+
+<!--Scale-->
 
 <div class="r-stack">
 <div class="fragment current-visible">
@@ -134,14 +136,11 @@ using Python
 </div>
 </div>
 
-notes:
-both OptimizationParameters and InferenceParameters have really good docstrings.
-Unlike most things.
-
 ---
 
 # How it works
 
+- Split runtime
 - Dual Parser
 - Shared globals
 - Conversion
@@ -162,7 +161,8 @@ Unlike most things.
 - Julia is incredibly hackable
 - Magic looks cool, but is hard to make robust
 
-<!-- Acknowledgements -->
+<!-- Back to demo slide -->
+<!-- Acknowledgements (Christopher Rowley) -->
 
 ---
 
