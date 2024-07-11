@@ -90,16 +90,27 @@ julia> @time sum(my_range)
   0.000004 seconds (1 allocation: 16 bytes)
 499999999500000000
 
+julia> import matplotlib.pyplot as plt
+
+julia> plt.plot(rand(10))
+1-element PyList{Any}:
+ Python: <matplotlib.lines.Line2D object at 0x12b58a840>
+
+julia> plt.show()
+
+julia> using Plots
+
+---
+						
 julia> from tkinter import *
 
-julia> window = Tk()
+julia> import webbrowser
 
-julia> window.title("Python.jl!")
-""
+julia> window = Tk();
+
+julia> Button(window, text="Click Me!", command=lambda:webbrowser.open("https://raw.githack.com/LilithHafner/JuliaCon2024_Python_Talk/main/reveal.js/index.html")).pack()
 
 julia> window.mainloop()
-
-julia> using Plots # <-- Don't forget!!!
 -->
 
 ```julia
@@ -150,8 +161,7 @@ using Python
 - Dual Parser
 - Shared globals
 - Conversion
-- Auto-launch
-- 200 lines of code
+- <200 lines of code
 
 ---
 
